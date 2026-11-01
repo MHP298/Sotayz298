@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Sổ Tay Công Việc Giáo Viên</title>
+
+  <!-- ==========================================================
+       CHỐNG LƯU CACHE (LUÔN TẢI BẢN MỚI NHẤT TỪ GITHUB PAGES)
+  ========================================================== -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:ital,wght@0,600;0,800;1,400&family=Share+Tech+Mono&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Flatpickr -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/material_orange.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://npmcdn.com/flatpickr/dist/l10n/vn.js"></script>
+
+  <!-- Firebase App & Services (Compat CDN) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+  <style>
+    :root {
+      --leather-outer: #381d11;
+      --leather-inner: #24130a;
+      --leather-gold: #e5c158;
+      --paper-bg: #fdfaf3;
+      --paper-line: #e6ddcb;
+      --ink-blue: #184382;
+      --ink-dark: #2b3032;
+      --led-red: #ff3344;
+      --badge-red: #c0392b;
+      --badge-yellow: #d35400;
+      --badge-green: #27ae60;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: radial-gradient(circle at center, #27160d 0%, #0c0604 100%);
+      font-family: 'Be Vietnam Pro', sans-serif;
+      color: var(--ink-dark);
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 8px 10px;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body.is-grabbing, 
+    body.is-grabbing * {
+      cursor: grabbing !important;
+    }
+
+    /* KHUNG SÂN KHẤU TRUNG TÂM */
+    .stage {
+      flex: 1;
+      width: 100%;
+      max-width: 980px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      perspective: 2400px;
+      min-height: 0;
+      position: relative;
+    }
+
+    .book-wrapper {
+      position: relative;
+      height: 96%;
+      max-height: calc(100vh - 60px);
+      max-height: calc(100dvh - 60px);
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    /* MÁY TÍNH / DI ĐỘNG NGANG */
+    @media (min-width: 768px) {
+      .book-wrapper {
+        aspect-ratio: 1.45 / 1;
+        width: auto;
+      }
+
+      .header-bar {
+        width: 100%;
+        height: 38px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        margin-bottom: 6px;
+        z-index: 100;
+      }
+
+      .nav-tabs {
+        width: 50%;
+        display: flex;
+        justify-content: space-between;
+        gap: 5px;
+      }
+
+      .nav-tab-btn {
+        flex: 1;
+        text-align: center;
+        padding: 5px 0;
+        font-size: 0.74rem;
+      }
+
+      .notebook-shell {
+        position: relative;
+        flex: 1;
+        display: flex;
+        width: 100%;
+        height: 100%;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.75);
+        border-radius: 8px;
+        background: transparent;
+        cursor: grab;
+      }
+
+      .spread-left-panel {
+        width: 50%;
+        height: 100%;
+        position: relative;
+        border-radius: 8px 0 0 8px;
+        overflow: hidden;
+      }
+
+      .spread-right-stack {
+        width: 50%;
+        height: 100%;
+        position: relative;
+        border-radius: 0 8px 8px 0;
+        overflow: visible;
+      }
+    }
+
+    /* DI ĐỘNG DỌC */
+    @media (max-width: 767px) {
+      .book-wrapper {
+        width: 100%;
+        max-width: 440px;
+        aspect-ratio: 1 / 1.42;
+      }
+
+      .header-bar {
+        width: 100%;
+        height: 34px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 6px;
+        z-index: 100;
+      }
+
+      .nav-tabs {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        gap: 3px;
+      }
+
+      .nav-tab-btn {
+        flex: 1;
+        text-align: center;
+        padding: 4px 1px;
+        font-size: 0.68rem;
+      }
+
+      .notebook-shell {
+        position: relative;
+        flex: 1;
+        width: 100%;
+        height: 100%;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+        border-radius: 8px;
+        cursor: grab;
+      }
+
+      .spread-left-panel {
+        display: none !important;
+      }
+
+      .spread-right-stack {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+    }
+
+    .nav-tabs {
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .nav-tabs::-webkit-scrollbar { display: none; }
+
+    .nav-tab-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(229, 193, 88, 0.35);
+      color: #dfcaa7;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .nav-tab-btn.active, .nav-tab-btn:hover {
+      background: var(--leather-gold);
+      color: #2b1408;
+      border-color: #fff;
+    }
+
+    /* CƠ CHẾ LẬT TRANG XẾP CHỒNG 3D MỀM MẠI */
+    .page-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 0 8px 8px 0;
+      transform-origin: left center;
+      transition: transform 0.65s cubic-bezier(0.25, 1, 0.35, 1), box-shadow 0.65s ease;
+      transform-style: preserve-3d;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      overflow: hidden;
+      touch-action: pan-y;
+    }
+
+    .page-layer.flipped {
+      transform: rotateY(-180deg);
+      pointer-events: none;
+    }
+
+    /* CÁNH TRÁI MỞ ĐÔI */
+    .left-surface {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    .left-paper-back {
+      width: 100%;
+      height: 100%;
+      background: var(--paper-bg);
+      background-image: 
+        linear-gradient(90deg, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.02) 85%, rgba(0,0,0,0.22) 100%),
+        linear-gradient(var(--paper-line) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 28px;
+      background-position: 0 0, 0 20px;
+      border-right: 1px solid rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      padding: 16px 20px;
+      box-shadow: inset -15px 0 20px -8px rgba(0,0,0,0.3);
+    }
+
+    .left-leather-inner {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #24130a 0%, #170b05 100%);
+      box-shadow: inset 0 0 35px rgba(0,0,0,0.9);
+      border-right: 4px solid #3d2112;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #dfcaa7;
+      padding: 24px;
+      text-align: center;
+      position: relative;
+    }
+    .left-leather-inner::before {
+      content: '';
+      position: absolute;
+      top: 8px; left: 8px; right: 8px; bottom: 8px;
+      border: 1px dashed rgba(255,255,255,0.15);
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    /* BÌA TRƯỚC */
+    .cover-front {
+      background: linear-gradient(135deg, var(--leather-outer) 0%, var(--leather-inner) 100%);
+      border: 4px solid #4a2817;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--leather-gold);
+      padding: 20px 16px 12px 16px;
+      text-align: center;
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.85);
+    }
+    .cover-front::before {
+      content: '';
+      position: absolute;
+      top: 6px; left: 6px; right: 6px; bottom: 6px;
+      border: 1.5px dashed rgba(229, 193, 88, 0.35);
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    /* BÌA SAU: PHẲNG, THANH LỊCH */
+    .cover-back-flat {
+      background: #2b160b;
+      border: 2px solid #442415;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--leather-gold);
+      padding: 22px 18px 12px 18px;
+      text-align: center;
+    }
+    .cover-back-flat::before {
+      content: '';
+      position: absolute;
+      top: 6px; left: 6px; right: 6px; bottom: 6px;
+      border: 1px dashed rgba(229, 193, 88, 0.25);
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    /* CÁC TRANG GIẤY RUỘT */
+    .paper-sheet {
+      background-color: var(--paper-bg);
+      background-image: 
+        linear-gradient(90deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.02) 15%, transparent 100%),
+        linear-gradient(var(--paper-line) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 28px;
+      background-position: 0 0, 0 20px;
+      padding: 14px 16px 10px 18px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: inset 15px 0 20px -8px rgba(0,0,0,0.2);
+    }
+
+    .spine-shadow-overlay {
+      position: absolute;
+      top: 0; bottom: 0; left: 0;
+      width: 25px;
+      background: linear-gradient(to right, rgba(0,0,0,0.25), transparent);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .page-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 2px solid #8c3b2d;
+      padding-bottom: 4px;
+      margin-bottom: 8px;
+    }
+    .page-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #4e1910;
+    }
+    .page-no {
+      font-size: 0.72rem;
+      color: #8c6239;
+      font-weight: 600;
+    }
+
+    .page-foot {
+      margin-top: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 6px;
+      border-top: 1px dashed var(--paper-line);
+      font-size: 0.74rem;
+      font-weight: 600;
+    }
+    .btn-turn {
+      background: rgba(123, 79, 44, 0.12);
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      color: #5c3517;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .btn-turn:hover { background: rgba(123, 79, 44, 0.25); }
+
+    .quote-cover-top {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.84rem;
+      font-style: italic;
+      color: #dfcaa7;
+      line-height: 1.5;
+      max-width: 90%;
+      margin: 8px 0 12px 0;
+      opacity: 0.95;
+    }
+
+    .bottom-hint-text {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 0.74rem;
+      color: #dfcaa7;
+      opacity: 0.85;
+      border-top: 1px dashed rgba(229, 193, 88, 0.3);
+      width: 92%;
+      padding-top: 8px;
+      margin-top: 6px;
+    }
+
+    /* BẢNG CÔNG VIỆC TRANG 1 */
+    .table-box {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 4px;
+    }
+    .table-box::-webkit-scrollbar { width: 3px; }
+    .table-box::-webkit-scrollbar-thumb { background: #d0c0a7; }
+
+    .task-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.76rem;
+    }
+    .task-table th {
+      background: rgba(140, 98, 57, 0.15);
+      color: #4a2912;
+      padding: 5px 4px;
+      text-align: left;
+      font-weight: 700;
+      border-bottom: 2px solid #b89772;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    .task-table td {
+      padding: 6px 4px;
+      border-bottom: 1px dashed var(--paper-line);
+      vertical-align: middle;
+    }
+
+    .task-link {
+      color: var(--ink-blue);
+      font-weight: 600;
+      text-decoration: underline dotted;
+      cursor: pointer;
+      display: block;
+      max-width: 140px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .task-link:hover { color: #b32d15; text-decoration: underline; }
+
+    .led-tag {
+      background: #0f0b09;
+      color: var(--led-red);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.68rem;
+      padding: 1px 4px;
+      border-radius: 3px;
+      border: 1px solid #ff4455;
+      font-weight: bold;
+      width: fit-content;
+      margin-top: 2px;
+      animation: pulse 1s infinite alternate;
+    }
+    @keyframes pulse { from { opacity: 0.85; } to { opacity: 1; } }
+
+    .badge {
+      display: inline-block;
+      padding: 1px 5px;
+      border-radius: 8px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .badge-red { background: var(--badge-red); }
+    .badge-yellow { background: var(--badge-yellow); }
+    .badge-green { background: var(--badge-green); }
+    .badge-gray { background: #7f8c8d; }
+
+    /* FORM TRANG 2 */
+    .form-item { margin-bottom: 6px; }
+    .form-item label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #4f341b;
+      margin-bottom: 2px;
+    }
+    .inp-txt {
+      width: 100%;
+      border: none;
+      border-bottom: 2px solid #a87950;
+      background: transparent;
+      padding: 4px 2px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      outline: none;
+      font-weight: 600;
+    }
+    .inp-txt:focus { border-bottom-color: #c0392b; }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .inp-cal {
+      width: 100%;
+      border: 1px solid #c9b49b;
+      background: rgba(255,255,255,0.7);
+      border-radius: 4px;
+      padding: 5px 6px;
+      font-size: 0.75rem;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .inp-area {
+      width: 100%;
+      height: 52px;
+      border: 1px solid #c9b49b;
+      background: rgba(255,255,255,0.6);
+      border-radius: 4px;
+      padding: 5px 6px;
+      font-size: 0.76rem;
+      font-family: inherit;
+      resize: none;
+      outline: none;
+    }
+
+    .btn-save {
+      background: linear-gradient(135deg, #a83824 0%, #7e1e10 100%);
+      color: #fff;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: auto;
+      margin-top: 4px;
+    }
+    .btn-save:hover { background: #bd412b; }
+    .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* GHI CHÚ TRANG 3 */
+    .note-date-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-bottom: 1px solid #bba387;
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: #55341c;
+    }
+    .note-date-inp {
+      border: none;
+      border-bottom: 1px dashed #55341c;
+      background: transparent;
+      padding: 1px 4px;
+      font-family: inherit;
+      font-size: 0.76rem;
+      outline: none;
+      width: 110px;
+    }
+    .note-pad {
+      flex: 1;
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: inherit;
+      font-size: 0.86rem;
+      line-height: 28px;
+      color: #1a1a1a;
+      resize: none;
+    }
+
+    /* POPUP 90% */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-card {
+      width: 90vw;
+      height: 90vh;
+      max-width: 700px;
+      background: var(--paper-bg);
+      border: 3px solid #6b4021;
+      border-radius: 12px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: #a83824;
+      color: #fff;
+      border: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body oncontextmenu="return false;">
+
+  <!-- KHUNG SÂN KHẤU -->
+  <main class="stage">
+    <div class="book-wrapper" id="bookWrapper">
+
+      <!-- THANH MENU ĐIỀU HƯỚNG -->
+      <header class="header-bar">
+        <div class="nav-tabs">
+          <button class="nav-tab-btn active" onclick="jumpToPage(0)">Bìa Sổ</button>
+          <button class="nav-tab-btn" onclick="jumpToPage(1)">Nhắc Việc</button>
+          <button class="nav-tab-btn" onclick="jumpToPage(2)">Thêm Việc</button>
+          <button class="nav-tab-btn" onclick="jumpToPage(3)">Ghi Chú</button>
+          <button class="nav-tab-btn" onclick="jumpToPage(4)">Bìa Sau</button>
+        </div>
+      </header>
+
+      <!-- CUỐN SỔ VỚI CÁC TRANG VẬT LÝ XẾP CHỒNG -->
+      <div class="notebook-shell" id="notebookShell">
+
+        <!-- CÁNH TRÁI CỐ ĐỊNH -->
+        <div class="spread-left-panel" id="spreadLeftPanel">
+          <div class="left-surface" id="leftSurfaceContent"></div>
+        </div>
+
+        <!-- CÁNH PHẢI: CÁC TRANG THỰC THỂ XẾP LỚP -->
+        <div class="spread-right-stack" id="spreadRightStack">
+
+          <!-- TRANG 4: BÌA SAU (LỚP ĐÁY: Z-INDEX 1) -->
+          <div class="page-layer cover-back-flat" id="pageLayer-4" style="z-index: 1;">
+            <div style="display:flex; flex-direction:column; align-items:center; width:100%; margin-top:20px;">
+              <div style="font-size:2.4rem; margin-bottom:12px;">🌱</div>
+              <p style="font-family:'Playfair Display', serif; font-size:1.05rem; font-style:italic; color:#dfcaa7; line-height:1.75; margin-bottom:18px; max-width:88%;">
+                "Người thầy cầm tay, mở ra tâm trí và chạm đến trái tim."
+              </p>
+              <div style="font-size:0.75rem; color:var(--leather-gold); letter-spacing:1px; margin-bottom:24px;">
+                CỘNG ĐỒNG GIÁO VIÊN VIỆT NAM
+              </div>
+              <button class="btn-turn" style="background:var(--leather-gold); color:#2c150b; font-size:0.8rem; padding:8px 22px; border-radius:18px; font-weight:700;" onclick="jumpToPage(0)">
+                Quay Lại Bìa Trước ↺
+              </button>
+            </div>
+            <div class="bottom-hint-text">
+              <span>📖</span>
+              <span>Kéo chuột hoặc vuốt để lật trang</span>
+            </div>
+          </div>
+
+          <!-- TRANG 3: GHI CHÚ (Z-INDEX 2) -->
+          <div class="page-layer paper-sheet" id="pageLayer-3" style="z-index: 2;">
+            <div class="spine-shadow-overlay"></div>
+            <div class="page-head">
+              <span class="page-title">Sổ Ghi Chú</span>
+              <span class="page-no">Trang 03</span>
+            </div>
+            <div class="note-date-bar">
+              <span>📅 Ngày:</span>
+              <input type="text" id="noteDate" class="note-date-inp" placeholder="dd/mm/yyyy">
+            </div>
+            <textarea id="noteText" class="note-pad" placeholder="Gõ ghi chú dặn dò, biên bản họp, ý tưởng bài giảng... (Đồng bộ Firebase)"></textarea>
+            <div class="page-foot">
+              <button class="btn-turn" onclick="turnPrevPage()">⬅ Thêm Việc</button>
+              <button class="btn-turn" onclick="turnNextPage()">Khép Sổ ➔</button>
+            </div>
+          </div>
+
+          <!-- TRANG 2: THÊM VIỆC (Z-INDEX 3) -->
+          <div class="page-layer paper-sheet" id="pageLayer-2" style="z-index: 3;">
+            <div class="spine-shadow-overlay"></div>
+            <div class="page-head">
+              <span class="page-title">Ghi Nhận Việc Mới</span>
+              <span class="page-no">Trang 02</span>
+            </div>
+            <form id="taskForm" onsubmit="handleAddTask(event)">
+              <div class="form-item">
+                <label>Tên Công Việc:</label>
+                <input type="text" id="taskTitle" class="inp-txt" placeholder="Nhập tên nhiệm vụ..." required>
+              </div>
+              <div class="form-item row-2">
+                <div>
+                  <label>Ngày Bắt Đầu:</label>
+                  <input type="text" id="taskStart" class="inp-cal" placeholder="dd/mm/yyyy" readonly required>
+                </div>
+                <div>
+                  <label>Hạn Chót:</label>
+                  <input type="text" id="taskEnd" class="inp-cal" placeholder="dd/mm/yyyy" readonly required>
+                </div>
+              </div>
+              <div class="form-item">
+                <label>Nội Dung CV Chi Tiết:</label>
+                <textarea id="taskContent" class="inp-area" placeholder="Chi tiết yêu cầu, lưu ý..."></textarea>
+              </div>
+              <div class="form-item row-2">
+                <div>
+                  <label>Link / URL:</label>
+                  <input type="url" id="taskUrl" class="inp-cal" placeholder="https://...">
+                </div>
+                <div>
+                  <label>Tệp Đính Kèm:</label>
+                  <input type="file" id="taskFile" style="display:none;" onchange="handleFilePicked(this)">
+                  <div onclick="document.getElementById('taskFile').click()" id="fileLabel" class="inp-cal" style="text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                    📎 Đính kèm tệp...
+                  </div>
+                </div>
+              </div>
+              <button type="submit" id="btnSubmitTask" class="btn-save">
+                <span>📌</span> Lưu Vào Sổ
+              </button>
+            </form>
+            <div class="page-foot">
+              <button class="btn-turn" onclick="turnPrevPage()">⬅ Danh Sách</button>
+              <button class="btn-turn" onclick="turnNextPage()">Ghi Chú ➔</button>
+            </div>
+          </div>
+
+          <!-- TRANG 1: DANH SÁCH NHẮC VIỆC (Z-INDEX 4) -->
+          <div class="page-layer paper-sheet" id="pageLayer-1" style="z-index: 4;">
+            <div class="spine-shadow-overlay"></div>
+            <div class="page-head">
+              <span class="page-title">Việc Cần Làm</span>
+              <span class="page-no">Trang 01</span>
+            </div>
+            <div class="table-box">
+              <table class="task-table">
+                <thead>
+                  <tr>
+                    <th style="width: 27%;">Hạn Chót</th>
+                    <th style="width: 37%;">Nội Dung CV</th>
+                    <th style="width: 18%;">Bắt Đầu</th>
+                    <th style="width: 18%; text-align: center;">Còn</th>
+                  </tr>
+                </thead>
+                <tbody id="taskBody">
+                  <tr><td colspan="4" style="text-align:center; padding:15px; color:#8c6239;">Đang kết nối cơ sở dữ liệu...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="page-foot">
+              <button class="btn-turn" onclick="turnPrevPage()">⬅ Bìa Sổ</button>
+              <button class="btn-turn" onclick="turnNextPage()">Thêm Việc ➔</button>
+            </div>
+          </div>
+
+          <!-- TRANG 0: BÌA TRƯỚC (LỚP ĐỈNH: Z-INDEX 5) -->
+          <div class="page-layer cover-front" id="pageLayer-0" style="z-index: 5;">
+            <div style="display:flex; flex-direction:column; align-items:center; width:100%;">
+              <div style="font-size: 2.3rem; margin-bottom: 4px;">📚</div>
+              <h1 style="font-family:'Playfair Display', serif; font-size:1.6rem; letter-spacing:1px; margin-bottom:4px;">SỔ TAY CÔNG VIỆC</h1>
+              <p style="font-family:'Dancing Script', cursive; font-size:1.25rem; color:#dfcaa7; margin-bottom:10px;">Kế Hoạch &amp; Nhiệm Vụ Giáo Viên</p>
+              
+              <div style="border:1px solid var(--leather-gold); padding:4px 14px; border-radius:18px; font-size:0.74rem; letter-spacing:1px; margin-bottom:8px;">
+                NIÊN KHÓA 2026 - 2027
+              </div>
+
+              <p class="quote-cover-top">
+                "Dưới ánh mặt trời, không có nghề nào cao quý hơn nghề dạy học."
+              </p>
+              
+              <button class="btn-turn" style="background:var(--leather-gold); color:#2c150b; font-size:0.8rem; padding:7px 20px; border-radius:18px; font-weight:700;" onclick="turnNextPage()">
+                Mở Sổ Ra ➔
+              </button>
+            </div>
+            <div class="bottom-hint-text">
+              <span>📖</span>
+              <span>Kéo chuột hoặc vuốt để lật trang</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- POPUP 90% CHI TIẾT -->
+  <div id="modalDetail" class="modal-backdrop" onclick="if(event.target===this)closeModal()">
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <h2 id="popTitle" style="font-family:'Playfair Display',serif; font-size:1.3rem; color:#4a1c12; margin-bottom:8px; padding-right:25px;">-</h2>
+      <div style="font-size:0.8rem; color:#784f29; display:flex; flex-wrap:wrap; gap:12px; border-bottom:1px solid #d3bf9f; padding-bottom:8px; margin-bottom:12px;">
+        <span>Bắt đầu: <strong id="popStart">-</strong></span>
+        <span>Hạn chót: <strong id="popEnd">-</strong></span>
+        <span id="popCountWrap" style="display:none;">Còn: <strong id="popCount" class="led-tag" style="display:inline-block; font-size:0.85rem;">--:--:--</strong></span>
+      </div>
+      <div id="popContent" style="flex:1; overflow-y:auto; font-size:0.9rem; line-height:1.6; white-space:pre-wrap; border-bottom:1px dashed #d3bf9f; padding-bottom:10px;"></div>
+      <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <a id="popLink" href="#" target="_blank" style="display:none; background:#184382; color:#fff; text-decoration:none; padding:4px 10px; border-radius:4px; font-size:0.75rem; font-weight:600;">🔗 Link</a>
+          <a id="popFile" href="#" target="_blank" style="display:none; font-size:0.76rem; color:#5c3e21; font-weight:600; margin-left:6px; text-decoration:underline;"></a>
+        </div>
+        <button onclick="deleteTask()" style="background:#a83824; color:#fff; border:none; padding:5px 12px; border-radius:4px; font-size:0.75rem; cursor:pointer; font-weight:600;">🗑️ Xóa việc</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================
+       CHẶN F12 VÀ XEM SOURCE CODE
+    ========================================================== */
+    window.addEventListener('keydown', function (e) {
+      // Chặn F12
+      if (e.keyCode === 123 || e.key === 'F12') {
+        e.preventDefault();
+        return false;
+      }
+      // Chặn Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C (DevTools)
+      if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67 || e.key === 'I' || e.key === 'J' || e.key === 'C')) {
+        e.preventDefault();
+        return false;
+      }
+      // Chặn Ctrl+U (Xem nguồn trang)
+      if (e.ctrlKey && (e.keyCode === 85 || e.key === 'u' || e.key === 'U')) {
+        e.preventDefault();
+        return false;
+      }
+      // Chặn Ctrl+S (Lưu trang về máy)
+      if (e.ctrlKey && (e.keyCode === 83 || e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        return false;
+      }
+    });
+
+    // Bẫy debugger ngăn chặn công cụ kiểm tra mở bằng menu
+    setInterval(function () {
+      (function () {
+        return false;
+      }["constructor"]("debugger")());
+    }, 1000);
+
+    /* ==========================================================
+       1. CẤU HÌNH VÀ KẾT NỐI FIREBASE
+    ========================================================== */
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXxpXv2_8cdQaDKQEdRgTkoKrzE0K8q2Y",
+      authDomain: "sotayz298.firebaseapp.com",
+      projectId: "sotayz298",
+      storageBucket: "sotayz298.firebasestorage.app",
+      messagingSenderId: "77731178633",
+      appId: "1:77731178633:web:6bbb83dfaaefea0d937e58",
+      measurementId: "G-HERCKWB3CL"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    let taskList = [];
+
+    /* ==========================================================
+       2. TIỆN ÍCH THỜI GIAN
+    ========================================================== */
+    function formatDt(d) {
+      const pad = n => String(n).padStart(2, '0');
+      return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function parseDt(str) {
+      if (!str) return null;
+      const [dPart, tPart] = str.split(' ');
+      const [d, m, y] = dPart.split('/');
+      const [h, min] = tPart ? tPart.split(':') : [0, 0];
+      return new Date(y, m - 1, d, h, min);
+    }
+
+    /* ==========================================================
+       3. ĐIỀU KHIỂN LẬT TRANG CHUẨN 3D
+    ========================================================== */
+    let currentPage = 0;
+    const totalPages = 5;
+
+    function jumpToPage(pageIdx) {
+      currentPage = Math.max(0, Math.min(pageIdx, totalPages - 1));
+
+      for (let i = 0; i < totalPages; i++) {
+        const layer = document.getElementById(`pageLayer-${i}`);
+        if (!layer) continue;
+        if (i < currentPage) {
+          layer.classList.add('flipped');
+        } else {
+          layer.classList.remove('flipped');
+        }
+      }
+
+      updateLeftSurface();
+
+      document.querySelectorAll('.nav-tab-btn').forEach((btn, idx) => {
+        btn.classList.toggle('active', idx === currentPage);
+      });
+    }
+
+    function turnNextPage() {
+      if (currentPage < totalPages - 1) {
+        jumpToPage(currentPage + 1);
+      }
+    }
+
+    function turnPrevPage() {
+      if (currentPage > 0) {
+        jumpToPage(currentPage - 1);
+      }
+    }
+
+    function updateLeftSurface() {
+      const leftBox = document.getElementById('leftSurfaceContent');
+      const leftPanel = document.getElementById('spreadLeftPanel');
+
+      if (currentPage === 0) {
+        leftPanel.style.visibility = 'hidden';
+        leftBox.innerHTML = '';
+        return;
+      }
+
+      leftPanel.style.visibility = 'visible';
+
+      if (currentPage === 1) {
+        leftBox.innerHTML = `
+          <div class="left-leather-inner">
+            <div style="font-size: 2.2rem; margin-bottom: 8px;">🎓</div>
+            <div style="font-family:'Dancing Script', cursive; font-size:1.5rem; color:#dfcaa7;">Sổ Tay Sư Phạm</div>
+            <div style="border-top:1px dashed rgba(229,193,88,0.4); width:80%; margin:12px auto;"></div>
+            <div style="font-size:0.78rem; font-style:italic; line-height:1.6; opacity:0.9;">
+              "Dạy học là đặt trái tim vào sự trưởng thành của học trò."
+            </div>
+          </div>
+        `;
+      } else if (currentPage === 2 || currentPage === 3) {
+        leftBox.innerHTML = `
+          <div class="left-paper-back">
+            <div class="page-head">
+              <span class="page-title" style="opacity:0.6;">Trang Trước</span>
+              <span class="page-no">Trang 0${currentPage - 1}</span>
+            </div>
+            <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; opacity:0.4; text-align:center;">
+              <span style="font-size:1.8rem; margin-bottom:6px;">📖</span>
+              <span style="font-size:0.78rem; font-style:italic;">(Mặt sau tờ giấy trước)</span>
+            </div>
+            <div class="page-foot">
+              <button class="btn-turn" onclick="turnPrevPage()">⬅ Lật Về Trước</button>
+              <span style="font-size:0.7rem; color:#8c6239;">Mặt cong gáy sổ</span>
+            </div>
+          </div>
+        `;
+      } else if (currentPage === 4) {
+        leftBox.innerHTML = `
+          <div class="left-paper-back" style="box-shadow: inset -5px 0 15px rgba(0,0,0,0.1);">
+            <div class="page-head">
+              <span class="page-title" style="opacity:0.6;">Ghi Chú Hoàn Tất</span>
+              <span class="page-no">Trang 03</span>
+            </div>
+            <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding: 20px;">
+              <div style="font-size: 2.2rem; margin-bottom: 8px; opacity:0.6;">✍️</div>
+              <p style="font-family:'Playfair Display', serif; font-size:0.9rem; font-style:italic; color:#6b4021; line-height:1.7;">
+                Mọi công việc và kế hoạch giáo dục đã được hoàn tất và lưu trữ an toàn trong sổ tay.
+              </p>
+            </div>
+            <div class="page-foot">
+              <button class="btn-turn" onclick="turnPrevPage()">⬅ Xem Ghi Chú</button>
+              <span style="font-size:0.7rem; color:#8c6239;">Trang giấy kết thúc</span>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    /* ==========================================================
+       4. ĐỒNG BỘ DỮ LIỆU CÔNG VIỆC TỪ FIRESTORE
+    ========================================================== */
+    function subscribeFirestore() {
+      db.collection("tasks").onSnapshot((snapshot) => {
+        taskList = [];
+        snapshot.forEach((doc) => {
+          taskList.push({ id: doc.id, ...doc.data() });
+        });
+        renderTaskTable();
+      }, (error) => {
+        console.error("Lỗi tải danh sách:", error);
+      });
+    }
+
+    function renderTaskTable() {
+      const tbody = document.getElementById('taskBody');
+      if (!tbody) return;
+
+      taskList.sort((a, b) => {
+        const tA = parseDt(a.endDate)?.getTime() || Infinity;
+        const tB = parseDt(b.endDate)?.getTime() || Infinity;
+        return tA - tB;
+      });
+
+      const now = Date.now();
+      let html = '';
+
+      if (taskList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#8c6239;">Chưa có nhiệm vụ nào trong sổ tay.</td></tr>';
+        return;
+      }
+
+      taskList.forEach(t => {
+        const dt = parseDt(t.endDate);
+        const diffH = dt ? (dt.getTime() - now) / 3600000 : 0;
+        const diffD = diffH / 24;
+
+        let badgeClass = 'badge-gray';
+        let badgeText = '';
+        let showLed = false;
+
+        if (diffH <= 0) {
+          badgeClass = 'badge-red';
+          badgeText = 'HẾT HẠN';
+        } else if (diffH <= 24) {
+          badgeClass = 'badge-red';
+          badgeText = `${Math.ceil(diffH)} giờ`;
+          showLed = true;
+        } else if (diffH <= 36) {
+          badgeClass = 'badge-red';
+          badgeText = `${diffD.toFixed(1)} ngày`;
+        } else if (diffH <= 54) {
+          badgeClass = 'badge-yellow';
+          badgeText = `${diffD.toFixed(1)} ngày`;
+        } else if (diffH <= 72) {
+          badgeClass = 'badge-green';
+          badgeText = `${diffD.toFixed(1)} ngày`;
+        } else {
+          badgeClass = 'badge-gray';
+          badgeText = `${Math.floor(diffD)} ngày`;
+        }
+
+        html += `
+          <tr>
+            <td>
+              <div>${t.endDate ? t.endDate.split(' ')[0] : '-'}</div>
+              ${showLed ? `<div class="led-tag led-tick" data-time="${t.endDate}">--:--:--</div>` : ''}
+            </td>
+            <td>
+              <span class="task-link" onclick="openDetail('${t.id}')">${t.title || 'Không tên'}</span>
+            </td>
+            <td style="color:#666;">${t.startDate ? t.startDate.split(' ')[0] : '-'}</td>
+            <td style="text-align:center;">
+              <span class="badge ${badgeClass}">${badgeText}</span>
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+      tickClocks();
+    }
+
+    function tickClocks() {
+      const now = Date.now();
+      document.querySelectorAll('.led-tick').forEach(el => {
+        const dt = parseDt(el.getAttribute('data-time'));
+        if (!dt) return;
+        const diff = dt.getTime() - now;
+        if (diff <= 0) {
+          el.innerText = '00:00:00';
+          return;
+        }
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        const p = n => String(n).padStart(2, '0');
+        el.innerText = `${p(h)}:${p(m)}:${p(s)}`;
+      });
+
+      const popLed = document.getElementById('popCount');
+      if (popLed && popLed.getAttribute('data-time')) {
+        const dt = parseDt(popLed.getAttribute('data-time'));
+        if (dt) {
+          const diff = dt.getTime() - now;
+          if (diff <= 0) {
+            popLed.innerText = 'ĐÃ HẾT HẠN';
+          } else {
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            const p = n => String(n).padStart(2, '0');
+            popLed.innerText = `${p(h)}:${p(m)}:${p(s)}`;
+          }
+        }
+      }
+    }
+
+    /* ==========================================================
+       5. THÊM VIỆC MỚI VÀ TẢI TỆP LÊN FIREBASE STORAGE
+    ========================================================== */
+    let selectedFileObject = null;
+
+    function handleFilePicked(input) {
+      if (input.files && input.files[0]) {
+        selectedFileObject = input.files[0];
+        document.getElementById('fileLabel').innerText = `📄 ${selectedFileObject.name}`;
+      }
+    }
+
+    async function handleAddTask(e) {
+      e.preventDefault();
+      const title = document.getElementById('taskTitle').value.trim();
+      const start = document.getElementById('taskStart').value;
+      const end = document.getElementById('taskEnd').value;
+      const content = document.getElementById('taskContent').value.trim();
+      const url = document.getElementById('taskUrl').value.trim();
+      const btn = document.getElementById('btnSubmitTask');
+
+      if (!title || !start || !end) return;
+
+      btn.disabled = true;
+      btn.innerText = "Đang lưu...";
+
+      let uploadedFileUrl = "";
+      let uploadedFileName = "";
+
+      try {
+        if (selectedFileObject) {
+          uploadedFileName = selectedFileObject.name;
+          const storageRef = storage.ref(`attachments/${Date.now()}_${uploadedFileName}`);
+          const uploadSnapshot = await storageRef.put(selectedFileObject);
+          uploadedFileUrl = await uploadSnapshot.ref.getDownloadURL();
+        }
+
+        await db.collection("tasks").add({
+          title: title,
+          startDate: start,
+          endDate: end,
+          content: content || 'Không có ghi chú thêm.',
+          link: url,
+          fileName: uploadedFileName,
+          fileUrl: uploadedFileUrl,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        document.getElementById('taskForm').reset();
+        document.getElementById('fileLabel').innerText = "📎 Đính kèm tệp...";
+        selectedFileObject = null;
+
+        jumpToPage(1);
+      } catch (err) {
+        console.error("Lỗi khi thêm việc:", err);
+        alert("Có lỗi khi lưu vào Firebase: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = "<span>📌</span> Lưu Vào Sổ";
+      }
+    }
+
+    /* ==========================================================
+       6. POPUP CHI TIẾT VÀ XÓA VIỆC
+    ========================================================== */
+    let activeTaskId = null;
+
+    function openDetail(id) {
+      const task = taskList.find(t => t.id === id);
+      if (!task) return;
+      activeTaskId = id;
+
+      document.getElementById('popTitle').innerText = task.title || '';
+      document.getElementById('popStart').innerText = task.startDate || '-';
+      document.getElementById('popEnd').innerText = task.endDate || '-';
+      document.getElementById('popContent').innerText = task.content || '';
+
+      const linkEl = document.getElementById('popLink');
+      if (task.link) {
+        linkEl.href = task.link;
+        linkEl.style.display = 'inline-block';
+      } else {
+        linkEl.style.display = 'none';
+      }
+
+      const fileEl = document.getElementById('popFile');
+      if (task.fileUrl) {
+        fileEl.href = task.fileUrl;
+        fileEl.innerText = `📎 Tải tệp: ${task.fileName || 'Xem tệp'}`;
+        fileEl.style.display = 'inline-block';
+      } else if (task.fileName) {
+        fileEl.removeAttribute('href');
+        fileEl.innerText = `📎 Tệp: ${task.fileName}`;
+        fileEl.style.display = 'inline-block';
+      } else {
+        fileEl.style.display = 'none';
+      }
+
+      const dt = parseDt(task.endDate);
+      const wrap = document.getElementById('popCountWrap');
+      const led = document.getElementById('popCount');
+      if (dt) {
+        wrap.style.display = 'inline-block';
+        led.setAttribute('data-time', task.endDate);
+        tickClocks();
+      } else {
+        wrap.style.display = 'none';
+      }
+
+      document.getElementById('modalDetail').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('modalDetail').classList.remove('open');
+      activeTaskId = null;
+    }
+
+    async function deleteTask() {
+      if (!activeTaskId) return;
+      if (confirm('Thầy/Cô muốn xóa công việc này khỏi sổ?')) {
+        try {
+          await db.collection("tasks").doc(activeTaskId).delete();
+          closeModal();
+        } catch (err) {
+          alert("Lỗi khi xóa: " + err.message);
+        }
+      }
+    }
+
+    /* ==========================================================
+       7. ĐỒNG BỘ TRANG GHI CHÚ VỚI FIRESTORE
+    ========================================================== */
+    let noteDebounceTimer = null;
+
+    function initFirestoreNote() {
+      const noteDocRef = db.collection("notes").doc("free_note");
+
+      noteDocRef.onSnapshot((doc) => {
+        if (doc.exists && document.activeElement !== document.getElementById('noteText')) {
+          document.getElementById('noteText').value = doc.data().content || "";
+        }
+      });
+
+      document.getElementById('noteText').addEventListener('input', (e) => {
+        clearTimeout(noteDebounceTimer);
+        noteDebounceTimer = setTimeout(() => {
+          noteDocRef.set({
+            content: e.target.value,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+        }, 600);
+      });
+    }
+
+    /* ==========================================================
+       8. BẮT SỰ KIỆN VUỐT/CHẠM VÀ CON TRỎ CHUỘT
+    ========================================================== */
+    let startX = 0;
+    let startY = 0;
+    let isTracking = false;
+    const shellEl = document.getElementById('notebookShell');
+
+    shellEl.addEventListener('pointerdown', (e) => {
+      if (['INPUT', 'TEXTAREA', 'BUTTON', 'A', 'LABEL'].includes(e.target.tagName) || 
+          e.target.closest('.task-link')) {
+        return;
+      }
+
+      const rect = shellEl.getBoundingClientRect();
+      const midPoint = rect.left + rect.width / 2;
+      if (Math.abs(e.clientX - midPoint) < 16) {
+        return;
+      }
+
+      isTracking = true;
+      startX = e.clientX;
+      startY = e.clientY;
+
+      document.body.classList.add('is-grabbing');
+
+      try {
+        shellEl.setPointerCapture(e.pointerId);
+      } catch (err) {}
+    });
+
+    shellEl.addEventListener('pointerup', (e) => {
+      document.body.classList.remove('is-grabbing');
+
+      if (!isTracking) return;
+      isTracking = false;
+
+      const diffX = e.clientX - startX;
+      const diffY = e.clientY - startY;
+
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 20) {
+        if (diffX < 0) {
+          turnNextPage();
+        } else {
+          turnPrevPage();
+        }
+      }
+
+      try {
+        shellEl.releasePointerCapture(e.pointerId);
+      } catch (err) {}
+    });
+
+    shellEl.addEventListener('pointercancel', () => {
+      isTracking = false;
+      document.body.classList.remove('is-grabbing');
+    });
+
+    /* ==========================================================
+       9. KHỞI CHẠY ỨNG DỤNG
+    ========================================================== */
+    window.addEventListener('DOMContentLoaded', () => {
+      const fpConfig = {
+        enableTime: true,
+        dateFormat: "d/m/Y H:i",
+        time_24hr: true,
+        locale: "vn",
+        minuteIncrement: 5,
+        defaultHour: 17,
+        defaultMinute: 0
+      };
+      flatpickr("#taskStart", fpConfig);
+      flatpickr("#taskEnd", fpConfig);
+      flatpickr("#noteDate", { dateFormat: "d/m/Y", locale: "vn", defaultDate: new Date() });
+
+      subscribeFirestore();
+      initFirestoreNote();
+      setInterval(tickClocks, 1000);
+      jumpToPage(0);
+    });
+  </script>
+</body>
+</html>
