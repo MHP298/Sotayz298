@@ -5,7 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Sổ Tay Công Việc Giáo Viên</title>
 
-  <!-- CHỐNG LƯU CACHE -->
+  <!-- CẤU HÌNH PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#381d11">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Sổ Tay GV">
+  <link rel="apple-touch-icon" href="icon-192.png">  
+
+  <!-- CHỐNG LƯU CACHE (LUÔN TẢI BẢN MỚI TỪ SERVER) -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -49,6 +57,7 @@
     }
 
     html, body {
+      /* Khóa cử chỉ vuốt mép quay lại của trình duyệt điện thoại (chống văng sang CH Play) */
       overscroll-behavior-x: none;
       overscroll-behavior-y: none;
     }
@@ -117,7 +126,7 @@
       }
 
       .nav-tabs {
-        width: 50%;
+        width: 50%; /* Khớp với chiều rộng trang phải / bìa */
         display: flex;
         justify-content: space-between;
         gap: 5px;
@@ -236,7 +245,7 @@
       border-color: #fff;
     }
 
-    /* CƠ CHẾ LẬT TRANG XẾP CHỒNG 3D */
+    /* CƠ CHẾ LẬT TRANG XẾP CHỒNG 3D MỀM MẠI */
     .page-layer {
       position: absolute;
       top: 0;
@@ -347,7 +356,7 @@
       pointer-events: none;
     }
 
-    /* CÁC TRANG GIẤY RUỘT */
+    /* TRANG GIẤY RUỘT */
     .paper-sheet {
       background-color: var(--paper-bg);
       background-image: 
@@ -436,12 +445,12 @@
       margin-top: 6px;
     }
 
-    /* BẢNG CÔNG VIỆC TRANG 1: HỖ TRỢ VUỐT TRƠN TRU */
+    /* BẢNG CÔNG VIỆC TRANG 1: KHÔNG CHẶN VUỐT NGANG */
     .table-box {
       flex: 1;
       overflow-y: auto;
       margin-bottom: 4px;
-      touch-action: pan-y; /* Cho phép cuộn dọc nhưng không chặn vuốt ngang */
+      touch-action: pan-y;
     }
     .table-box::-webkit-scrollbar { width: 3px; }
     .table-box::-webkit-scrollbar-thumb { background: #d0c0a7; }
@@ -577,7 +586,7 @@
     .btn-save:hover { background: #bd412b; }
     .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    /* GHI CHÚ TRANG 3: TỐI ƯU KHÔNG BỊ NUỐT THAO TÁC VUỐT */
+    /* GHI CHÚ TRANG 3: TỐI ƯU ĐỂ LƯỚT VUỐT KHÔNG BỊ KHỰNG */
     .note-date-bar {
       display: flex;
       align-items: center;
@@ -659,7 +668,7 @@
   <main class="stage">
     <div class="book-wrapper" id="bookWrapper">
 
-      <!-- THANH MENU ĐIỀU HƯỚNG -->
+      <!-- THANH MENU ĐIỀU HƯỚNG: BỎ SỐ THỨ TỰ, GỌN GÀNG VỪA KHÍT TRANG PHẢI -->
       <header class="header-bar">
         <div class="nav-tabs">
           <button class="nav-tab-btn active" onclick="jumpToPage(0)">Bìa Sổ</button>
@@ -828,7 +837,7 @@
     </div>
   </main>
 
-  <!-- POPUP 90% CHI TIẾT -->
+  <!-- POPUP CHI TIẾT -->
   <div id="modalDetail" class="modal-backdrop" onclick="if(event.target===this)closeModal()">
     <div class="modal-card">
       <button class="modal-close" onclick="closeModal()">✕</button>
@@ -851,7 +860,7 @@
 
   <script>
     /* ==========================================================
-       CHẶN F12 VÀ XEM SOURCE CODE
+       CHẶN PHÍM TẮT XEM CODE (DEVTOOLS)
     ========================================================== */
     window.addEventListener('keydown', function (e) {
       if (e.keyCode === 123 || e.key === 'F12') {
@@ -872,12 +881,6 @@
       }
     });
 
-    setInterval(function () {
-      (function () {
-        return false;
-      }["constructor"]("debugger")());
-    }, 1000);
-
     /* ==========================================================
        1. CẤU HÌNH VÀ KẾT NỐI FIREBASE
     ========================================================== */
@@ -897,9 +900,6 @@
 
     let taskList = [];
 
-    /* ==========================================================
-       2. TIỆN ÍCH THỜI GIAN
-    ========================================================== */
     function formatDt(d) {
       const pad = n => String(n).padStart(2, '0');
       return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -914,7 +914,7 @@
     }
 
     /* ==========================================================
-       3. ĐIỀU KHIỂN LẬT TRANG CHUẨN 3D
+       2. ĐIỀU KHIỂN LẬT TRANG CHUẨN 3D
     ========================================================== */
     let currentPage = 0;
     const totalPages = 5;
@@ -1014,7 +1014,7 @@
     }
 
     /* ==========================================================
-       4. ĐỒNG BỘ DỮ LIỆU CÔNG VIỆC TỪ FIRESTORE
+       3. ĐỒNG BỘ FIRESTORE
     ========================================================== */
     function subscribeFirestore() {
       db.collection("tasks").onSnapshot((snapshot) => {
@@ -1133,7 +1133,7 @@
     }
 
     /* ==========================================================
-       5. THÊM VIỆC MỚI VÀ TẢI TỆP LÊN FIREBASE STORAGE
+       4. FORM THÊM VIỆC & UPLOAD STORAGE
     ========================================================== */
     let selectedFileObject = null;
 
@@ -1195,7 +1195,7 @@
     }
 
     /* ==========================================================
-       6. POPUP CHI TIẾT VÀ XÓA VIỆC
+       5. POPUP CHI TIẾT
     ========================================================== */
     let activeTaskId = null;
 
@@ -1262,7 +1262,7 @@
     }
 
     /* ==========================================================
-       7. ĐỒNG BỘ TRANG GHI CHÚ VỚI FIRESTORE
+       6. ĐỒNG BỘ GHI CHÚ
     ========================================================== */
     let noteDebounceTimer = null;
 
@@ -1287,7 +1287,7 @@
     }
 
     /* ==========================================================
-       8. BẮT SỰ KIỆN VUỐT/CHẠM TOÀN BỘ SỔ (KHÔNG BỊ KHỰNG TRANG 1 & TRANG 3)
+       7. CƠ CHẾ BẮT VUỐT LẬT TRANG SIÊU NHẠY (KHÔNG KHỰNG TRANG 3)
     ========================================================== */
     let startX = 0;
     let startY = 0;
@@ -1295,7 +1295,7 @@
     const shellEl = document.getElementById('notebookShell');
 
     shellEl.addEventListener('pointerdown', (e) => {
-      // Chỉ bỏ qua các nút bấm, ô input ngày, hoặc click vào link việc
+      // Bỏ qua nếu chạm vào input chọn ngày, nút bấm, link hoặc link việc
       if (e.target.tagName === 'INPUT' || 
           e.target.closest('button') || 
           e.target.closest('a') || 
@@ -1306,6 +1306,11 @@
       // Vùng an toàn mép màn hình: tránh cử chỉ Back của Android
       if (e.clientX < 20) {
         return;
+      }
+
+      // Nếu đang chạm vào textarea ghi chú, nhả focus để tránh bị chặn cử chỉ vuốt ngang
+      if (e.target.tagName === 'TEXTAREA') {
+        e.target.blur();
       }
 
       isTracking = true;
@@ -1327,12 +1332,12 @@
       const diffX = e.clientX - startX;
       const diffY = e.clientY - startY;
 
-      // Nhận diện vuốt ngang dứt khoát (> 15px và góc ngang áp đảo)
+      // Nhận diện vuốt ngang dứt khoát
       if (Math.abs(diffX) > 15 && Math.abs(diffX) > Math.abs(diffY) * 0.7) {
         if (diffX < 0) {
-          turnNextPage(); // Vuốt sang trái -> lật tới
+          turnNextPage();
         } else {
-          turnPrevPage(); // Vuốt sang phải -> lật lùi
+          turnPrevPage();
         }
       }
 
@@ -1347,7 +1352,7 @@
     });
 
     /* ==========================================================
-       9. TỰ ĐỘNG CẬP NHẬT KHI QUAY LẠI TAB
+       8. QUAY LẠI TAB & KHỞI CHẠY
     ========================================================== */
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") {
@@ -1355,9 +1360,6 @@
       }
     });
 
-    /* ==========================================================
-       10. KHỞI CHẠY ỨNG DỤNG
-    ========================================================== */
     window.addEventListener('DOMContentLoaded', () => {
       const fpConfig = {
         enableTime: true,
@@ -1377,6 +1379,15 @@
       setInterval(tickClocks, 1000);
       jumpToPage(0);
     });
+
+    // Đăng ký Service Worker PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((reg) => console.log('PWA Service Worker đã đăng ký thành công:', reg.scope))
+          .catch((err) => console.log('Đăng ký Service Worker thất bại:', err));
+      });
+    }
   </script>
 </body>
 </html>
