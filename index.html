@@ -6,7 +6,7 @@
   <title>Sổ Tay Công Việc Giáo Viên</title>
 
   <!-- ==========================================================
-       CHỐNG LƯU CACHE (LUÔN TẢI BẢN MỚI NHẤT TỪ GITHUB PAGES)
+       CHỐNG LƯU CACHE (LUÔN TẢI BẢN MỚI NHẤT TỪ MÁY CHỦ)
   ========================================================== -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
@@ -114,7 +114,7 @@
       }
 
       .nav-tabs {
-        width: 50%;
+        width: 50%; /* Khớp với chiều rộng trang phải / bìa */
         display: flex;
         justify-content: space-between;
         gap: 5px;
@@ -137,6 +137,7 @@
         border-radius: 8px;
         background: transparent;
         cursor: grab;
+        touch-action: pan-y;
       }
 
       .spread-left-panel {
@@ -196,6 +197,7 @@
         box-shadow: 0 12px 30px rgba(0,0,0,0.6);
         border-radius: 8px;
         cursor: grab;
+        touch-action: pan-y;
       }
 
       .spread-left-panel {
@@ -247,7 +249,6 @@
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
       overflow: hidden;
-      touch-action: pan-y;
     }
 
     .page-layer.flipped {
@@ -850,29 +851,24 @@
        CHẶN F12 VÀ XEM SOURCE CODE
     ========================================================== */
     window.addEventListener('keydown', function (e) {
-      // Chặn F12
       if (e.keyCode === 123 || e.key === 'F12') {
         e.preventDefault();
         return false;
       }
-      // Chặn Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C (DevTools)
       if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67 || e.key === 'I' || e.key === 'J' || e.key === 'C')) {
         e.preventDefault();
         return false;
       }
-      // Chặn Ctrl+U (Xem nguồn trang)
       if (e.ctrlKey && (e.keyCode === 85 || e.key === 'u' || e.key === 'U')) {
         e.preventDefault();
         return false;
       }
-      // Chặn Ctrl+S (Lưu trang về máy)
       if (e.ctrlKey && (e.keyCode === 83 || e.key === 's' || e.key === 'S')) {
         e.preventDefault();
         return false;
       }
     });
 
-    // Bẫy debugger ngăn chặn công cụ kiểm tra mở bằng menu
     setInterval(function () {
       (function () {
         return false;
@@ -1288,7 +1284,7 @@
     }
 
     /* ==========================================================
-       8. BẮT SỰ KIỆN VUỐT/CHẠM VÀ CON TRỎ CHUỘT
+       8. BẮT SỰ KIỆN VUỐT/CHẠM TOÀN BỘ SỔ (SIÊU NHẠY 15px)
     ========================================================== */
     let startX = 0;
     let startY = 0;
@@ -1296,14 +1292,11 @@
     const shellEl = document.getElementById('notebookShell');
 
     shellEl.addEventListener('pointerdown', (e) => {
+      // Chỉ bỏ qua khi chạm đúng vào các nút bấm, ô nhập hoặc link
       if (['INPUT', 'TEXTAREA', 'BUTTON', 'A', 'LABEL'].includes(e.target.tagName) || 
+          e.target.closest('button') || 
+          e.target.closest('a') || 
           e.target.closest('.task-link')) {
-        return;
-      }
-
-      const rect = shellEl.getBoundingClientRect();
-      const midPoint = rect.left + rect.width / 2;
-      if (Math.abs(e.clientX - midPoint) < 16) {
         return;
       }
 
@@ -1319,15 +1312,15 @@
     });
 
     shellEl.addEventListener('pointerup', (e) => {
-      document.body.classList.remove('is-grabbing');
-
       if (!isTracking) return;
       isTracking = false;
+      document.body.classList.remove('is-grabbing');
 
       const diffX = e.clientX - startX;
       const diffY = e.clientY - startY;
 
-      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 20) {
+      // Ngưỡng 15px: chỉ cần lướt nhẹ ngón tay hoặc chuột là lật ngay
+      if (Math.abs(diffX) > 15 && Math.abs(diffX) > Math.abs(diffY) * 0.6) {
         if (diffX < 0) {
           turnNextPage();
         } else {
