@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Sổ Tay Công Việc Giáo Viên</title>
 
-  <!-- ==========================================================
-       CHỐNG LƯU CACHE (LUÔN TẢI BẢN MỚI NHẤT TỪ MÁY CHỦ)
-  ========================================================== -->
+  <!-- CHỐNG LƯU CACHE -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -48,6 +46,12 @@
       margin: 0;
       padding: 0;
       -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      /* KHÓA CỬ CHỈ VUỐT BACK / FORWARD TRÌNH DUYỆT (CHỐNG NHẢY CH PLAY) */
+      overscroll-behavior-x: none;
+      overscroll-behavior-y: none;
     }
 
     body {
@@ -114,7 +118,7 @@
       }
 
       .nav-tabs {
-        width: 50%; /* Khớp với chiều rộng trang phải / bìa */
+        width: 50%;
         display: flex;
         justify-content: space-between;
         gap: 5px;
@@ -137,7 +141,7 @@
         border-radius: 8px;
         background: transparent;
         cursor: grab;
-        touch-action: pan-y;
+        touch-action: none; /* Khóa chạm mặc định để tăng tối đa độ nhạy */
       }
 
       .spread-left-panel {
@@ -197,7 +201,7 @@
         box-shadow: 0 12px 30px rgba(0,0,0,0.6);
         border-radius: 8px;
         cursor: grab;
-        touch-action: pan-y;
+        touch-action: none;
       }
 
       .spread-left-panel {
@@ -235,7 +239,7 @@
       border-color: #fff;
     }
 
-    /* CƠ CHẾ LẬT TRANG XẾP CHỒNG 3D MỀM MẠI */
+    /* TĂNG TỐC ĐỘ LẬT (0.45s GIÚP PHẢN HỒI TỨC THÌ) */
     .page-layer {
       position: absolute;
       top: 0;
@@ -244,7 +248,7 @@
       height: 100%;
       border-radius: 0 8px 8px 0;
       transform-origin: left center;
-      transition: transform 0.65s cubic-bezier(0.25, 1, 0.35, 1), box-shadow 0.65s ease;
+      transition: transform 0.45s cubic-bezier(0.25, 1, 0.35, 1), box-shadow 0.45s ease;
       transform-style: preserve-3d;
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
@@ -1284,7 +1288,7 @@
     }
 
     /* ==========================================================
-       8. BẮT SỰ KIỆN VUỐT/CHẠM TOÀN BỘ SỔ (SIÊU NHẠY 15px)
+       8. BẮT SỰ KIỆN VUỐT/CHẠM TOÀN BỘ SỔ (SIÊU NHẠY & CHỐNG BACK MÀN HÌNH)
     ========================================================== */
     let startX = 0;
     let startY = 0;
@@ -1292,11 +1296,16 @@
     const shellEl = document.getElementById('notebookShell');
 
     shellEl.addEventListener('pointerdown', (e) => {
-      // Chỉ bỏ qua khi chạm đúng vào các nút bấm, ô nhập hoặc link
+      // Bỏ qua nếu chạm vào ô nhập, nút bấm, link
       if (['INPUT', 'TEXTAREA', 'BUTTON', 'A', 'LABEL'].includes(e.target.tagName) || 
           e.target.closest('button') || 
           e.target.closest('a') || 
           e.target.closest('.task-link')) {
+        return;
+      }
+
+      // VÙNG AN TOÀN MÉP MÀN HÌNH: Nếu ngón tay chạm sát mép trái dưới 20px, bỏ qua để không kích hoạt cử chỉ Back của Android
+      if (e.clientX < 20) {
         return;
       }
 
@@ -1319,12 +1328,12 @@
       const diffX = e.clientX - startX;
       const diffY = e.clientY - startY;
 
-      // Ngưỡng 15px: chỉ cần lướt nhẹ ngón tay hoặc chuột là lật ngay
+      // Hạ ngưỡng vuốt xuống 15px: chỉ cần lướt nhẹ đầu ngón tay là lật trang ngay
       if (Math.abs(diffX) > 15 && Math.abs(diffX) > Math.abs(diffY) * 0.6) {
         if (diffX < 0) {
-          turnNextPage();
+          turnNextPage(); // Kéo sang trái -> Lật tới
         } else {
-          turnPrevPage();
+          turnPrevPage(); // Kéo sang phải -> Lật lùi
         }
       }
 
