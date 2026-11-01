@@ -49,7 +49,6 @@
     }
 
     html, body {
-      /* KHÓA CỬ CHỈ VUỐT BACK / FORWARD TRÌNH DUYỆT (CHỐNG NHẢY CH PLAY) */
       overscroll-behavior-x: none;
       overscroll-behavior-y: none;
     }
@@ -141,7 +140,6 @@
         border-radius: 8px;
         background: transparent;
         cursor: grab;
-        touch-action: none; /* Khóa chạm mặc định để tăng tối đa độ nhạy */
       }
 
       .spread-left-panel {
@@ -201,7 +199,6 @@
         box-shadow: 0 12px 30px rgba(0,0,0,0.6);
         border-radius: 8px;
         cursor: grab;
-        touch-action: none;
       }
 
       .spread-left-panel {
@@ -239,7 +236,7 @@
       border-color: #fff;
     }
 
-    /* TĂNG TỐC ĐỘ LẬT (0.45s GIÚP PHẢN HỒI TỨC THÌ) */
+    /* CƠ CHẾ LẬT TRANG XẾP CHỒNG 3D */
     .page-layer {
       position: absolute;
       top: 0;
@@ -439,11 +436,12 @@
       margin-top: 6px;
     }
 
-    /* BẢNG CÔNG VIỆC TRANG 1 */
+    /* BẢNG CÔNG VIỆC TRANG 1: HỖ TRỢ VUỐT TRƠN TRU */
     .table-box {
       flex: 1;
       overflow-y: auto;
       margin-bottom: 4px;
+      touch-action: pan-y; /* Cho phép cuộn dọc nhưng không chặn vuốt ngang */
     }
     .table-box::-webkit-scrollbar { width: 3px; }
     .table-box::-webkit-scrollbar-thumb { background: #d0c0a7; }
@@ -579,7 +577,7 @@
     .btn-save:hover { background: #bd412b; }
     .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    /* GHI CHÚ TRANG 3 */
+    /* GHI CHÚ TRANG 3: TỐI ƯU KHÔNG BỊ NUỐT THAO TÁC VUỐT */
     .note-date-bar {
       display: flex;
       align-items: center;
@@ -612,6 +610,7 @@
       line-height: 28px;
       color: #1a1a1a;
       resize: none;
+      touch-action: pan-y;
     }
 
     /* POPUP 90% */
@@ -1288,7 +1287,7 @@
     }
 
     /* ==========================================================
-       8. BẮT SỰ KIỆN VUỐT/CHẠM TOÀN BỘ SỔ (SIÊU NHẠY & CHỐNG BACK MÀN HÌNH)
+       8. BẮT SỰ KIỆN VUỐT/CHẠM TOÀN BỘ SỔ (KHÔNG BỊ KHỰNG TRANG 1 & TRANG 3)
     ========================================================== */
     let startX = 0;
     let startY = 0;
@@ -1296,15 +1295,15 @@
     const shellEl = document.getElementById('notebookShell');
 
     shellEl.addEventListener('pointerdown', (e) => {
-      // Bỏ qua nếu chạm vào ô nhập, nút bấm, link
-      if (['INPUT', 'TEXTAREA', 'BUTTON', 'A', 'LABEL'].includes(e.target.tagName) || 
+      // Chỉ bỏ qua các nút bấm, ô input ngày, hoặc click vào link việc
+      if (e.target.tagName === 'INPUT' || 
           e.target.closest('button') || 
           e.target.closest('a') || 
           e.target.closest('.task-link')) {
         return;
       }
 
-      // VÙNG AN TOÀN MÉP MÀN HÌNH: Nếu ngón tay chạm sát mép trái dưới 20px, bỏ qua để không kích hoạt cử chỉ Back của Android
+      // Vùng an toàn mép màn hình: tránh cử chỉ Back của Android
       if (e.clientX < 20) {
         return;
       }
@@ -1328,12 +1327,12 @@
       const diffX = e.clientX - startX;
       const diffY = e.clientY - startY;
 
-      // Hạ ngưỡng vuốt xuống 15px: chỉ cần lướt nhẹ đầu ngón tay là lật trang ngay
-      if (Math.abs(diffX) > 15 && Math.abs(diffX) > Math.abs(diffY) * 0.6) {
+      // Nhận diện vuốt ngang dứt khoát (> 15px và góc ngang áp đảo)
+      if (Math.abs(diffX) > 15 && Math.abs(diffX) > Math.abs(diffY) * 0.7) {
         if (diffX < 0) {
-          turnNextPage(); // Kéo sang trái -> Lật tới
+          turnNextPage(); // Vuốt sang trái -> lật tới
         } else {
-          turnPrevPage(); // Kéo sang phải -> Lật lùi
+          turnPrevPage(); // Vuốt sang phải -> lật lùi
         }
       }
 
@@ -1348,7 +1347,16 @@
     });
 
     /* ==========================================================
-       9. KHỞI CHẠY ỨNG DỤNG
+       9. TỰ ĐỘNG CẬP NHẬT KHI QUAY LẠI TAB
+    ========================================================== */
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        tickClocks();
+      }
+    });
+
+    /* ==========================================================
+       10. KHỞI CHẠY ỨNG DỤNG
     ========================================================== */
     window.addEventListener('DOMContentLoaded', () => {
       const fpConfig = {
