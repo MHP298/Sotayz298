@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-title" content="Sổ Tay GV">
   <link rel="apple-touch-icon" href="icon-192.png">  
 
-  <!-- CHỐNG LƯU CACHE (LUÔN TẢI BẢN MỚI TỪ SERVER) -->
+  <!-- CHỐNG LƯU CACHE -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -29,7 +29,7 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://npmcdn.com/flatpickr/dist/l10n/vn.js"></script>
 
-  <!-- Firebase App & Services (Compat CDN) -->
+  <!-- Firebase App & Services -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
@@ -57,7 +57,6 @@
     }
 
     html, body {
-      /* Khóa cử chỉ vuốt mép quay lại của trình duyệt điện thoại (chống văng sang CH Play) */
       overscroll-behavior-x: none;
       overscroll-behavior-y: none;
     }
@@ -123,13 +122,14 @@
         align-items: center;
         margin-bottom: 6px;
         z-index: 100;
+        gap: 8px;
       }
 
       .nav-tabs {
-        width: 50%; /* Khớp với chiều rộng trang phải / bìa */
+        width: 50%;
         display: flex;
         justify-content: space-between;
-        gap: 5px;
+        gap: 4px;
       }
 
       .nav-tab-btn {
@@ -149,6 +149,7 @@
         border-radius: 8px;
         background: transparent;
         cursor: grab;
+        touch-action: pan-y;
       }
 
       .spread-left-panel {
@@ -184,20 +185,21 @@
         align-items: center;
         margin-bottom: 6px;
         z-index: 100;
+        gap: 4px;
       }
 
       .nav-tabs {
         width: 100%;
         display: flex;
         justify-content: space-between;
-        gap: 3px;
+        gap: 2px;
       }
 
       .nav-tab-btn {
         flex: 1;
         text-align: center;
         padding: 4px 1px;
-        font-size: 0.68rem;
+        font-size: 0.65rem;
       }
 
       .notebook-shell {
@@ -208,6 +210,7 @@
         box-shadow: 0 12px 30px rgba(0,0,0,0.6);
         border-radius: 8px;
         cursor: grab;
+        touch-action: pan-y;
       }
 
       .spread-left-panel {
@@ -245,7 +248,27 @@
       border-color: #fff;
     }
 
-    /* CƠ CHẾ LẬT TRANG XẾP CHỒNG 3D MỀM MẠI */
+    /* NÚT TẢI CÀI ĐẶT PWA TRỰC TIẾP */
+    .btn-install-pwa {
+      background: linear-gradient(135deg, #e5c158 0%, #b89025 100%);
+      color: #2b1408;
+      border: 1px solid #fff;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.68rem;
+      padding: 4px 8px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      gap: 3px;
+      white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+    .btn-install-pwa:hover {
+      filter: brightness(1.1);
+    }
+
+    /* CƠ CHẾ LẬT TRANG XẾP CHỒNG 3D */
     .page-layer {
       position: absolute;
       top: 0;
@@ -259,6 +282,7 @@
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
       overflow: hidden;
+      touch-action: pan-y;
     }
 
     .page-layer.flipped {
@@ -266,7 +290,6 @@
       pointer-events: none;
     }
 
-    /* CÁNH TRÁI MỞ ĐÔI */
     .left-surface {
       width: 100%;
       height: 100%;
@@ -313,7 +336,6 @@
       pointer-events: none;
     }
 
-    /* BÌA TRƯỚC */
     .cover-front {
       background: linear-gradient(135deg, var(--leather-outer) 0%, var(--leather-inner) 100%);
       border: 4px solid #4a2817;
@@ -335,7 +357,6 @@
       pointer-events: none;
     }
 
-    /* BÌA SAU: PHẲNG, THANH LỊCH */
     .cover-back-flat {
       background: #2b160b;
       border: 2px solid #442415;
@@ -356,7 +377,6 @@
       pointer-events: none;
     }
 
-    /* TRANG GIẤY RUỘT */
     .paper-sheet {
       background-color: var(--paper-bg);
       background-image: 
@@ -445,7 +465,6 @@
       margin-top: 6px;
     }
 
-    /* BẢNG CÔNG VIỆC TRANG 1: KHÔNG CHẶN VUỐT NGANG */
     .table-box {
       flex: 1;
       overflow-y: auto;
@@ -586,7 +605,7 @@
     .btn-save:hover { background: #bd412b; }
     .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    /* GHI CHÚ TRANG 3: TỐI ƯU ĐỂ LƯỚT VUỐT KHÔNG BỊ KHỰNG */
+    /* GHI CHÚ TRANG 3 */
     .note-date-bar {
       display: flex;
       align-items: center;
@@ -668,8 +687,11 @@
   <main class="stage">
     <div class="book-wrapper" id="bookWrapper">
 
-      <!-- THANH MENU ĐIỀU HƯỚNG: BỎ SỐ THỨ TỰ, GỌN GÀNG VỪA KHÍT TRANG PHẢI -->
+      <!-- THANH MENU ĐIỀU HƯỚNG VÀ NÚT TẢI APP -->
       <header class="header-bar">
+        <button id="btnInstallApp" class="btn-install-pwa" onclick="triggerInstallPWA()">
+          📥 Tải App
+        </button>
         <div class="nav-tabs">
           <button class="nav-tab-btn active" onclick="jumpToPage(0)">Bìa Sổ</button>
           <button class="nav-tab-btn" onclick="jumpToPage(1)">Nhắc Việc</button>
@@ -860,7 +882,7 @@
 
   <script>
     /* ==========================================================
-       CHẶN PHÍM TẮT XEM CODE (DEVTOOLS)
+       CHẶN PHÍM TẮT XEM CODE
     ========================================================== */
     window.addEventListener('keydown', function (e) {
       if (e.keyCode === 123 || e.key === 'F12') {
@@ -1287,72 +1309,107 @@
     }
 
     /* ==========================================================
-       7. CƠ CHẾ BẮT VUỐT LẬT TRANG SIÊU NHẠY (KHÔNG KHỰNG TRANG 3)
+       7. CƠ CHẾ BẮT VUỐT CẢM ỨNG SIÊU NHẠY (KHẮC PHỤC TRIỆT ĐỂ)
     ========================================================== */
     let startX = 0;
     let startY = 0;
     let isTracking = false;
     const shellEl = document.getElementById('notebookShell');
 
+    // Hỗ trợ Pointer cho chuột máy tính
     shellEl.addEventListener('pointerdown', (e) => {
-      // Bỏ qua nếu chạm vào input chọn ngày, nút bấm, link hoặc link việc
-      if (e.target.tagName === 'INPUT' || 
-          e.target.closest('button') || 
-          e.target.closest('a') || 
-          e.target.closest('.task-link')) {
-        return;
-      }
+      if (e.pointerType === 'touch') return; // Touch sẽ do touchstart xử lý để không bị nuốt sự kiện
+      if (e.target.tagName === 'INPUT' || e.target.closest('button') || e.target.closest('a') || e.target.closest('.task-link')) return;
 
-      // Vùng an toàn mép màn hình: tránh cử chỉ Back của Android
-      if (e.clientX < 20) {
-        return;
-      }
-
-      // Nếu đang chạm vào textarea ghi chú, nhả focus để tránh bị chặn cử chỉ vuốt ngang
-      if (e.target.tagName === 'TEXTAREA') {
-        e.target.blur();
-      }
+      if (e.target.tagName === 'TEXTAREA') e.target.blur();
 
       isTracking = true;
       startX = e.clientX;
       startY = e.clientY;
-
       document.body.classList.add('is-grabbing');
-
-      try {
-        shellEl.setPointerCapture(e.pointerId);
-      } catch (err) {}
     });
 
-    shellEl.addEventListener('pointerup', (e) => {
-      if (!isTracking) return;
+    window.addEventListener('pointerup', (e) => {
+      if (!isTracking || e.pointerType === 'touch') return;
       isTracking = false;
       document.body.classList.remove('is-grabbing');
 
       const diffX = e.clientX - startX;
       const diffY = e.clientY - startY;
 
-      // Nhận diện vuốt ngang dứt khoát
-      if (Math.abs(diffX) > 15 && Math.abs(diffX) > Math.abs(diffY) * 0.7) {
+      if (Math.abs(diffX) > 20 && Math.abs(diffX) > Math.abs(diffY) * 0.7) {
+        if (diffX < 0) turnNextPage();
+        else turnPrevPage();
+      }
+    });
+
+    // BẮT TOUCH CHUẨN XÁC TRÊN ĐIỆN THOẠI (KHÔNG BAO GIỜ BỊ KHỰNG)
+    shellEl.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      // Nếu chạm sát mép trái dưới 25px, bỏ qua để nhường cử chỉ Back của Android
+      if (touch.clientX < 25) return;
+
+      if (e.target.tagName === 'INPUT' || e.target.closest('button') || e.target.closest('a') || e.target.closest('.task-link')) return;
+
+      startX = touch.clientX;
+      startY = touch.clientY;
+      isTracking = true;
+    }, { passive: true });
+
+    shellEl.addEventListener('touchend', (e) => {
+      if (!isTracking) return;
+      isTracking = false;
+
+      const touch = e.changedTouches[0];
+      const diffX = touch.clientX - startX;
+      const diffY = touch.clientY - startY;
+
+      // Vuốt ngang > 25px kích hoạt lật trang
+      if (Math.abs(diffX) > 25 && Math.abs(diffX) > Math.abs(diffY) * 0.7) {
+        if (e.target.tagName === 'TEXTAREA') e.target.blur(); // Nhả bàn phím khi vuốt
         if (diffX < 0) {
           turnNextPage();
         } else {
           turnPrevPage();
         }
       }
+    }, { passive: true });
 
-      try {
-        shellEl.releasePointerCapture(e.pointerId);
-      } catch (err) {}
+    /* ==========================================================
+       8. QUẢN LÝ CÀI ĐẶT ỨNG DỤNG PWA
+    ========================================================== */
+    let deferredPrompt = null;
+    const btnInstall = document.getElementById('btnInstallApp');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      // Hiện nút tải app trên thanh điều hướng
+      if (btnInstall) btnInstall.style.display = 'inline-flex';
     });
 
-    shellEl.addEventListener('pointercancel', () => {
-      isTracking = false;
-      document.body.classList.remove('is-grabbing');
+    function triggerInstallPWA() {
+      if (!deferredPrompt) {
+        alert("Để cài đặt:\n- Trên Chrome Android: Bấm vào dấu 3 chấm góc trên bên phải -> Chọn 'Cài đặt ứng dụng' hoặc 'Thêm vào màn hình chính'.\n- Trên Safari iPhone: Bấm nút Chia sẻ (Share) -> Chọn 'Thêm vào MH chính'.");
+        return;
+      }
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('Người dùng đã đồng ý cài đặt');
+          btnInstall.style.display = 'none';
+        }
+        deferredPrompt = null;
+      });
+    }
+
+    window.addEventListener('appinstalled', () => {
+      if (btnInstall) btnInstall.style.display = 'none';
+      deferredPrompt = null;
     });
 
     /* ==========================================================
-       8. QUAY LẠI TAB & KHỞI CHẠY
+       9. QUAY LẠI TAB & KHỞI CHẠY
     ========================================================== */
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") {
@@ -1384,7 +1441,7 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-          .then((reg) => console.log('PWA Service Worker đã đăng ký thành công:', reg.scope))
+          .then((reg) => console.log('PWA Service Worker đã đăng ký:', reg.scope))
           .catch((err) => console.log('Đăng ký Service Worker thất bại:', err));
       });
     }
